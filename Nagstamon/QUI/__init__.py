@@ -5241,8 +5241,8 @@ class Dialog_Server(Dialog):
         # these widgets are shown or hidden depending on server type properties
         # the servers listed at each widget do need them
         self.VOLATILE_WIDGETS = {
-            self.ui.label_monitor_cgi_url: ['Nagios', 'Icinga', 'Thruk', 'Sensu'],
-            self.ui.input_lineedit_monitor_cgi_url: ['Nagios', 'Icinga', 'Thruk', 'Sensu'],
+            self.ui.label_monitor_cgi_url: ['Nagios', 'Icinga', 'Thruk', 'Sensu', 'ThrukTomTomOSP', 'ThrukTomTomOSPNoc'],
+            self.ui.input_lineedit_monitor_cgi_url: ['Nagios', 'Icinga', 'Thruk', 'Sensu', 'ThrukTomTomOSP', 'ThrukTomTomOSPNoc'],
             self.ui.input_checkbox_use_autologin: ['Centreon'],
             self.ui.input_lineedit_autologin_key: ['Centreon'],
             self.ui.label_autologin_key: ['Centreon'],

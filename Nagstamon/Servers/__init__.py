@@ -40,6 +40,8 @@ from Nagstamon.Servers.Zenoss import ZenossServer
 from Nagstamon.Servers.Monitos3 import Monitos3Server
 from Nagstamon.Servers.SnagView3 import SnagViewServer
 from Nagstamon.Servers.Sensu import SensuServer
+from Nagstamon.Servers.ThrukTomTomOSP import ThrukTomTomOSPServer
+from Nagstamon.Servers.ThrukTomTomOSPNoc import ThrukTomTomOSPNocServer
 
 from Nagstamon.Config import conf
 
@@ -194,7 +196,7 @@ def create_server(server=None):
 
 # moved registration process here because of circular dependencies
 for server in (CentreonServer, IcingaServer, IcingaWeb2Server, MultisiteServer, NagiosServer,
-               Op5MonitorServer, OpsviewServer, ThrukServer, ZabbixServer, SensuServer,
+               Op5MonitorServer, OpsviewServer, ThrukServer, ThrukTomTomOSPServer, ThrukTomTomOSPNocServer, ZabbixServer, SensuServer,
                LivestatusServer, ZenossServer, Monitos3Server, SnagViewServer):
     register_server(server)
 

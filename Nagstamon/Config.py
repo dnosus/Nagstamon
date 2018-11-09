@@ -712,39 +712,16 @@ class Config(object):
         create some default actions like SSH and so on
         """
         if platform.system() == "Windows":
-            defaultactions = {"RDP": Action(name="RDP", description="Connect via RDP.",
-                                            type="command", string="C:\windows\system32\mstsc.exe /v:$ADDRESS$"),
-                              "VNC": Action(name="VNC", description="Connect via VNC.",
-                                            type="command", string="C:\Program Files\TightVNC\vncviewer.exe $ADDRESS$"),
-                              "Telnet": Action(name="Telnet", description="Connect via Telnet.",
-                                               type="command", string="C:\Windows\System32\Telnet.exe root@$ADDRESS$"),
-                              "SSH": Action(name="SSH", description="Connect via SSH.",
+            defaultactions = {"SSH": Action(name="SSH", description="Connect via SSH.",
                                             type="command",
                                             string="C:\Program Files\PuTTY\putty.exe -l root $ADDRESS$")}
         elif platform.system() == "Darwin":
-            defaultactions = {"RDP": Action(name="RDP", description="Connect via RDP.",
-                                            type="command", string="open rdp://$ADDRESS$"),
-                              "VNC": Action(name="VNC", description="Connect via VNC.",
-                                            type="command", string="open vnc://$ADDRESS$"),
-                              "SSH": Action(name="SSH", description="Connect via SSH.",
-                                            type="command", string="open ssh://root@$ADDRESS$"),
-                              "Telnet": Action(name="Telnet", description="Connect via Telnet.",
-                                               type="command", string="open telnet://root@$ADDRESS$")}
+            defaultactions = {"SSH": Action(name="SSH", description="Connect via SSH.",
+                                            type="command", string="open ssh://root@$ADDRESS$")}
         else:
             # the Linux settings
-            defaultactions = {"RDP": Action(name="RDP", description="Connect via RDP.",
-                                            type="command", string="/usr/bin/rdesktop -g 1024x768 $ADDRESS$"),
-                              "VNC": Action(name="VNC", description="Connect via VNC.",
-                                            type="command", string="/usr/bin/vncviewer $ADDRESS$"),
-                              "SSH": Action(name="SSH", description="Connect via SSH.",
-                                            type="command", string="/usr/bin/gnome-terminal -x ssh root@$ADDRESS$"),
-                              "Telnet": Action(name="Telnet", description="Connect via Telnet.",
-                                               type="command",
-                                               string="/usr/bin/gnome-terminal -x telnet root@$ADDRESS$"),
-                              "Update-Linux": Action(name="Update-Linux", description="Run remote update script.",
-                                                     type="command",
-                                                     string="/usr/bin/terminator -x ssh root@$HOST$ update.sh",
-                                                     enabled=False)}
+            defaultactions = {"SSH": Action(name="SSH", description="Connect via SSH.",
+                                            type="command", string="/usr/bin/gnome-terminal -x ssh root@$ADDRESS$")}
             # OS agnostic actions as examples
         defaultactions["Nagios-1-Click-Acknowledge-Host"] = Action(name="Nagios-1-Click-Acknowledge-Host", type="url",
                                                                    description="Acknowledges a host with one click.",
@@ -865,7 +842,7 @@ class Server(object):
         self.proxy_password = 'proxypassword'
         # defaults to 'basic', other possible values are 'digest' and 'kerberos'
         self.authentication = 'basic'
-        self.timeout = 10
+        self.timeout = 30
         # just GUI-wise deciding if more options are shown in server dialog
         self.show_options = False
 

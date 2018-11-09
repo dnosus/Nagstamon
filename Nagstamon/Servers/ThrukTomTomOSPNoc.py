@@ -23,16 +23,17 @@ import sys
 import json
 import datetime
 import copy
+from collections import OrderedDict
 
 from Nagstamon.Helpers import HumanReadableDurationFromTimestamp
 from Nagstamon.Objects import (GenericHost, GenericService, Result)
 
 
-class ThrukServer(GenericServer):
+class ThrukTomTomOSPNoc(GenericServer):
     """
-        Thruk is derived from generic (Nagios) server
+        ThrukTomTomOSP is derived from generic (Nagios) server
     """
-    TYPE = 'Thruk'
+    TYPE = 'ThrukTomTomOSPNoc'
 
     # dictionary to translate status bitmaps on webinterface into status flags
     # this are defaults from Nagios
@@ -52,9 +53,9 @@ class ThrukServer(GenericServer):
 
     # URLs for browser shortlinks/buttons on popup window
     BROWSER_URLS = { "monitor": "$MONITOR$", \
-                    "hosts": "$MONITOR-CGI$/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12&page=1&entries=all", \
-                    "services": "$MONITOR-CGI$/status.cgi?dfl_s0_value_sel=5&dfl_s0_servicestatustypes=29&dfl_s0_op=%3D&style=detail&dfl_s0_type=host&dfl_s0_serviceprops=0&dfl_s0_servicestatustype=4&dfl_s0_servicestatustype=8&dfl_s0_servicestatustype=16&dfl_s0_servicestatustype=1&hidetop=&dfl_s0_hoststatustypes=15&dfl_s0_val_pre=&hidesearch=2&dfl_s0_value=all&dfl_s0_hostprops=0&nav=&page=1&entries=all", \
-                    "history": "$MONITOR-CGI$/history.cgi?host=all&page=1&entries=all"}
+                     "hosts": "$MONITOR-CGI$/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12&page=1&entries=all&dfl_s0_value=tag%3AOSP-consumer-live&dfl_s0_value=tag%3Anoc", \
+                     "services": "$MONITOR-CGI$/status.cgi?dfl_s0_value_sel=5&dfl_s0_servicestatustypes=29&dfl_s0_op=%3D&style=detail&dfl_s0_type=host&dfl_s0_serviceprops=0&dfl_s0_servicestatustype=4&dfl_s0_servicestatustype=8&dfl_s0_servicestatustype=16&dfl_s0_servicestatustype=1&hidetop=&dfl_s0_hoststatustypes=15&dfl_s0_val_pre=&hidesearch=2&dfl_s0_value=all&dfl_s0_hostprops=0&nav=&page=1&entries=all&dfl_s0_value=tag%3AOSP-consumer-live&dfl_s0_value=tag%3Anoc", \
+                     "history": "$MONITOR-CGI$/history.cgi?host=all&page=1&entries=all"}
 
     STATES_MAPPING = {"hosts" : {0 : "OK", 1 : "DOWN", 2 : "UNREACHABLE"}, \
                       "services" : {0 : "OK", 1 : "WARNING", 2 : "CRITICAL", 3 : "UNKNOWN"}}
@@ -72,12 +73,8 @@ class ThrukServer(GenericServer):
             brute force reset by GenericServer disturbs logging in into Thruk
         """
         # only reset session if Thruks 2 cookies are there
-        try:
-            # only reset session if Thruks 2 cookies are there
-            if len(self.session.cookies) > 1:
-                self.session = None
-        except:
-            self.Error(sys.exc_info())
+        if len(self.session.cookies) > 1:
+            self.session = None
 
 
     def init_HTTP(self):
@@ -85,7 +82,8 @@ class ThrukServer(GenericServer):
             partly not constantly working Basic Authorization requires extra Autorization headers,
             different between various server types
         """
-        GenericServer.init_HTTP(self)
+        if self.session == None:
+            GenericServer.init_HTTP(self)
 
         # only if cookies are needed
         if self.CookieAuth:
@@ -107,24 +105,30 @@ class ThrukServer(GenericServer):
         # create filters like described in
         # http://www.nagios-wiki.de/nagios/tips/host-_und_serviceproperties_fuer_status.cgi?s=servicestatustypes
         # Thruk allows requesting only needed information to reduce traffic
-        self.cgiurl_services = self.monitor_cgi_url + "/status.cgi?host=all&servicestatustypes=28&view_mode=json&"\
-                                                      "entries=all&columns=host_name,description,state,last_check,"\
-                                                      "last_state_change,plugin_output,current_attempt,"\
-                                                      "max_check_attempts,active_checks_enabled,is_flapping,"\
-                                                      "notifications_enabled,acknowledged,state_type,"\
-                                                      "scheduled_downtime_depth"
+        self.cgiurl_services = self.monitor_cgi_url + "/status.cgi?nav=&entries=all&hidesearch=0&hidetop=&"\
+                                                      "dfl_s0_hoststatustypes=15&dfl_s0_servicestatustypes=28&"\
+                                                      "dfl_s0_hostprops=0&dfl_s0_serviceprops=0&style=detail&update.x=7&update.y=7&"\
+                                                      "dfl_s0_type=search&dfl_s0_val_pre=&dfl_s0_op=%7E&dfl_s0_value=tag%3AOSP-consumer-live&"\
+                                                      "dfl_s0_type=search&dfl_s0_val_pre=&dfl_s0_op=%7E&dfl_s0_value=tag%3Anoc&"\
+                                                      "dfl_s0_value_sel=5&dfl_s0_type=service&dfl_s0_val_pre=&"\
+                                                      "dfl_s0_op=%21%7E&dfl_s0_value=DNS+Records&dfl_s0_value_sel=5&"\
+                                                      "dfl_s0_type=service&dfl_s0_val_pre=&dfl_s0_op=%21%7E&"\
+                                                      "dfl_s0_value=Patch+Management+-+Needs+Restarting&"\
+                                                      "dfl_s0_value_sel=5&view_mode=json"
         # hosts (up or down or unreachable)
-        self.cgiurl_hosts = self.monitor_cgi_url + "/status.cgi?hostgroup=all&style=hostdetail&hoststatustypes=12&"\
-                                                    "view_mode=json&entries=all&"\
-                                                    "columns=name,state,last_check,last_state_change,"\
-                                                    "plugin_output,current_attempt,max_check_attempts,"\
-                                                    "active_checks_enabled,notifications_enabled,is_flapping,"\
-                                                    "acknowledged,scheduled_downtime_depth,state_type"
+        self.cgiurl_hosts = self.monitor_cgi_url + "/status.cgi?nav=&entries=all&style=hostdetail&hidetop=&"\
+                                                   "dfl_s0_hoststatustypes=12&dfl_s0_servicestatustypes=31&"\
+                                                   "dfl_s0_hostprops=0&dfl_s0_serviceprops=0&style=hostdetail&update.x=8&update.y=11&"\
+                                                   "dfl_s0_type=search&dfl_s0_val_pre=&dfl_s0_op=~&dfl_s0_value=tag%3AOSP-consumer-live&"\
+                                                   "dfl_s0_type=search&dfl_s0_val_pre=&dfl_s0_op=~&dfl_s0_value=tag%3Anoc&"\
+                                                   "dfl_s0_value_sel=5&view_mode=json"
+
 
         # get cookie from login page via url retrieving as with other urls
         try:
             # login and get cookie
-            GenericServer.init_HTTP(self)
+            if self.session == None:
+                GenericServer.init_HTTP(self)
 
             self.login()
 
@@ -143,6 +147,87 @@ class ThrukServer(GenericServer):
                                 'password': self.get_password(),
                                 'submit': 'Login',
                                 'referer': ''})
+
+    def _set_acknowledge(self, host, service, author, comment, sticky, notify, persistent, all_services=[]):
+        '''
+            send acknowledge to monitor server - might be different on every monitor type
+        '''
+
+        url = self.monitor_cgi_url + '/cmd.cgi'
+
+        # the following flags apply to hosts and services
+        #
+        # according to sf.net bug #3304098 (https://sourceforge.net/tracker/?func=detail&atid=1101370&aid=3304098&group_id=236865)
+        # the send_notification-flag must not exist if it is set to 'off', otherwise
+        # the Nagios core interpretes it as set, regardless its real value
+        #
+        # for whatever silly reason Icinga depends on the correct order of submitted form items...
+        # see sf.net bug 3428844
+        #
+        # Thanks to Icinga ORDER OF ARGUMENTS IS IMPORTANT HERE!
+        #
+        cgi_data = OrderedDict()
+        if service == '':
+            cgi_data['cmd_typ'] = '33'
+        else:
+            cgi_data['cmd_typ'] = '34'
+        cgi_data['cmd_mod'] = '2'
+        cgi_data['host'] = host
+        if service != '':
+            cgi_data['service'] = service
+        cgi_data['com_author'] = author
+        cgi_data['com_data'] = comment
+        cgi_data['backend'] = '0ded1'
+
+        cgi_data['btnSubmit'] = 'Commit'
+        if notify == True:
+            cgi_data['send_notification'] = 'on'
+        if persistent == True:
+            cgi_data['persistent'] = 'on'
+        if sticky == True:
+            cgi_data['sticky_ack'] = 'on'
+
+        self.FetchURL(url, giveback='raw', cgi_data=cgi_data)
+
+        # acknowledge all services on a host
+        if len(all_services) > 0:
+            for s in all_services:
+                cgi_data['cmd_typ'] = '34'
+                cgi_data['service'] = s
+                self.FetchURL(url, giveback='raw', cgi_data=cgi_data)
+
+    def _set_downtime(self, host, service, author, comment, fixed, start_time, end_time, hours, minutes):
+        '''
+            finally send downtime command to monitor server
+        '''
+        url = self.monitor_cgi_url + '/cmd.cgi'
+
+        # for some reason Icinga is very fastidiuos about the order of CGI arguments, so please
+        # here we go... it took DAYS :-(
+        cgi_data = OrderedDict()
+        if service == '':
+            cgi_data['cmd_typ'] = '55'
+        else:
+            cgi_data['cmd_typ'] = '56'
+        cgi_data['cmd_mod'] = '2'
+        cgi_data['trigger'] = '0'
+        cgi_data['host'] = host
+        if service != '':
+            cgi_data['service'] = service
+        cgi_data['com_author'] = author
+        cgi_data['com_data'] = comment
+        cgi_data['fixed'] = fixed
+        cgi_data['start_time'] = start_time
+        cgi_data['end_time'] = end_time
+        cgi_data['hours'] = hours
+        cgi_data['minutes'] = minutes
+        cgi_data['backend'] = '0ded1'
+        cgi_data['btnSubmit'] = 'Commit'
+
+        # running remote cgi command
+        self.FetchURL(url, giveback='raw', cgi_data=cgi_data)
+
+
 
 
     def _get_status(self):

@@ -17,6 +17,8 @@
    <li>Icinga</li>
    <li>Check_MK Multisite</li>
    <li>Thruk</li>
+   <li>ThrukTomTomOSP</li>
+   <li>ThrukTomTomOSPNoc</li>
    <li>Op5Monitor</li>
    <li>Centreon</li>
    <li>Opsview</li>
@@ -26,7 +28,7 @@
    <li>Experimental: Sensu</li>
    </ul>
   </p>
-  <p>  
+  <p>
    Events could be handled by instant access to failed hosts/services.
    Nagstamon is very customizable by several types of event filters, notifications methods and actions.
   </p>
