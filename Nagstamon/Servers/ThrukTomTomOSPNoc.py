@@ -29,7 +29,7 @@ from Nagstamon.Helpers import HumanReadableDurationFromTimestamp
 from Nagstamon.Objects import (GenericHost, GenericService, Result)
 
 
-class ThrukTomTomOSPNoc(GenericServer):
+class ThrukTomTomOSPNocServer(GenericServer):
     """
         ThrukTomTomOSP is derived from generic (Nagios) server
     """
