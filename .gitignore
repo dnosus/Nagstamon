@@ -7,3 +7,10 @@ nagstamon.conf/
 .directory
 .metadata/
 .vscode/
+.pybuild/
+build/nagstamon*.deb
+build/scripts-3.6/
+debian/
+nagstamon
+nagstamon.egg-info/
+
